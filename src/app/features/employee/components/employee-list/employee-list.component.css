@@ -1,0 +1,224 @@
+/* Definišemo Figma boje lokalno */
+:host {
+  --figma-dark-green: #14532D;
+  --figma-bright-green: #22C55E;
+  --figma-bg-color: #FAFAFA;
+  --figma-border: #E5E7EB;
+  --figma-text-dark: #1F2937;
+  --figma-table-header: #E2E2E2;
+}
+
+.page-wrapper {
+  background-color: var(--figma-bg-color);
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: var(--figma-text-dark);
+}
+
+/* HEADER */
+.top-header {
+  background-color: var(--figma-dark-green);
+  padding: 30px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-text h1 {
+  color: white;
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.header-text p {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 5px 0 0 0;
+  font-size: 14px;
+}
+
+.btn-add {
+  background-color: var(--figma-bright-green);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* GLAVNI SADRŽAJ */
+.main-content {
+  padding: 40px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* FILTER BAR (Zelena kutija) */
+.filter-bar {
+  background-color: var(--figma-dark-green);
+  padding: 12px 20px;
+  border-radius: 8px;
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.search-wrapper {
+  position: relative;
+  width: 280px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  color: #9CA3AF;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  border-radius: 4px;
+  border: none;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+}
+
+.dropdown-wrapper {
+  background-color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dropdown-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4B5563;
+}
+
+.custom-select {
+  border: none;
+  font-size: 14px;
+  outline: none;
+  background: transparent;
+  font-style: italic;
+  color: #6B7280;
+  cursor: pointer;
+}
+
+/* TABELA */
+.table-container {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden; /* Čuva ivice tabele unutar zaobljenog kontejnera */
+}
+
+.figma-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.figma-table th {
+  background-color: var(--figma-table-header);
+  text-align: left;
+  padding: 16px 24px;
+  font-size: 13px;
+  font-weight: 700;
+  border-right: 1px solid #D1D5DB; /* Vertikalne linije */
+  border-bottom: 1px solid #D1D5DB;
+}
+
+.figma-table th:last-child {
+  border-right: none;
+}
+
+.figma-table td {
+  padding: 16px 24px;
+  font-size: 13px;
+  border-right: 1px solid var(--figma-border);
+  border-bottom: 1px solid var(--figma-border);
+  height: 60px; /* Minimalna visina za prazne redove */
+}
+
+.figma-table td:last-child {
+  border-right: none;
+}
+
+/* STILOVI ZA TEKST I PILULE UNUTAR TABELE */
+.fw-bold {
+  font-weight: 700;
+}
+
+.email-text {
+  font-weight: 500;
+}
+
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.role-pill.admin {
+  background-color: #D1FAE5; /* Svetlo zelena */
+  color: #065F46; /* Tamno zelena za tekst */
+}
+
+.role-pill.regular {
+  background-color: #E5E7EB; /* Svetlo siva */
+  color: #374151;
+}
+
+.permissions-wrapper {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.perm-pill {
+  background-color: #E5E7EB;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-style: italic;
+  font-weight: 600;
+  color: #4B5563;
+}
+
+.perm-text {
+  font-size: 12px;
+  color: #4B5563;
+  margin-left: 4px;
+}
+
+/* KANTA ZA SMEĆE */
+.action-cell {
+  text-align: center;
+}
+
+.btn-delete {
+  background: none;
+  border: none;
+  color: black;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.btn-delete:hover {
+  color: #ef4444; /* Crvena na hover */
+}
