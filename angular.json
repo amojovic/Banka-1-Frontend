@@ -3,9 +3,13 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "banka-1-frontend": {
+    "Banka-1-Frontend": {
       "projectType": "application",
-      "schematics": {},
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
@@ -20,12 +24,13 @@
               "zone.js"
             ],
             "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
               "src/assets"
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.scss"
             ],
             "scripts": []
           },
@@ -64,15 +69,12 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {
-            "browserTarget": "banka-1-frontend:build"
-          },
           "configurations": {
             "production": {
-              "browserTarget": "banka-1-frontend:build:production"
+              "browserTarget": "Banka-1-Frontend:build:production"
             },
             "development": {
-              "browserTarget": "banka-1-frontend:build:development"
+              "browserTarget": "Banka-1-Frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -80,7 +82,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "banka-1-frontend:build"
+            "browserTarget": "Banka-1-Frontend:build"
           }
         },
         "test": {
@@ -91,12 +93,13 @@
               "zone.js/testing"
             ],
             "tsConfig": "tsconfig.spec.json",
+            "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
               "src/assets"
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.scss"
             ],
             "scripts": []
           }
@@ -105,6 +108,6 @@
     }
   },
   "cli": {
-    "analytics": false
+    "analytics": "1ef35a0e-288a-4dcb-9c4d-9577093c913a"
   }
 }

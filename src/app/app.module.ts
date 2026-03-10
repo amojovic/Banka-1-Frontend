@@ -1,9 +1,13 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app-routing.module';
+
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 
 import { AppComponent } from './app.component';
 import { EmployeeListComponent } from './features/employee/components/employee-list/employee-list.component';
@@ -20,9 +24,11 @@ import { EmployeeEditComponent } from './features/employee/components/employee-e
     BrowserModule,
     CommonModule,
     FormsModule, 
-    RouterModule.forRoot([])
+    RouterModule.forRoot([]),
+    AppRoutingModule,
+    HttpClientModule
   ],
-  providers: [],
+  providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
