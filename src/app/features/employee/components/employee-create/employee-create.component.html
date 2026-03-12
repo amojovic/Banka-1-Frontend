@@ -1,13 +1,13 @@
 <div class="page-wrapper">
   <div class="form-card">
-    
+
     <div class="header-text">
       <h2>Create employee</h2>
       <p>Fill in the details to create a new employee account.</p>
     </div>
 
     <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()" class="figma-form">
-      
+
       <div class="form-group">
         <label for="fullName">Full name</label>
         <input id="fullName" type="text" formControlName="fullName" placeholder="Enter full name">
@@ -24,9 +24,10 @@
       <div class="form-group">
         <label for="role">Role</label>
         <select id="role" formControlName="role">
-          <option value="Regular employee">Regular employee</option>
-          <option value="Manager">Manager</option>
-          <option value="Admin">Admin</option>
+          <option value="BASIC">Basic</option>
+          <option value="AGENT">Agent</option>
+          <option value="SUPERVISOR">Supervisor</option>
+          <option value="ADMIN">Admin</option>
         </select>
       </div>
 
@@ -37,29 +38,7 @@
           <option value="Inactive">Inactive</option>
         </select>
       </div>
-
-      <div class="permissions-section">
-        <h3>Permissions</h3>
-        <div class="permissions-grid">
-          <label class="checkbox-label">
-            <input type="checkbox" formControlName="permCreate">
-            <span class="checkmark"></span> Create
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" formControlName="permEdit">
-            <span class="checkmark"></span> Edit
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" formControlName="permDelete">
-            <span class="checkmark"></span> Delete
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" formControlName="permView">
-            <span class="checkmark"></span> View
-          </label>
-        </div>
-      </div>
-
+      
       <div class="form-actions">
         <button type="button" class="btn-cancel" routerLink="/employees">Cancel</button>
         <button type="submit" class="btn-submit" [disabled]="employeeForm.invalid">Create employee</button>

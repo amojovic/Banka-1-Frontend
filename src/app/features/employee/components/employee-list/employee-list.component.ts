@@ -173,7 +173,7 @@ export class EmployeeListComponent implements OnInit {
       next: (response) => {
         const index = this.employees.findIndex(e => e.id === response.id);
         if (index !== -1) {
-          this.employees[index] = response;
+          this.employees[index] = {...updatedEmployee, ...response};
           this.applyFilters();
         }
         this.closeEditModal();

@@ -63,9 +63,9 @@ export class EmployeeCreateComponent implements OnInit, OnDestroy {
       brojTelefona: "+38100000000", // Dodajemo default jer ga nema u ovoj formi a backend traži
       datumRodjenja: "1990-01-01", // Dodajemo default
       pol: "M",                    // Dodajemo default
-      pozicija: formValues.role,
+      pozicija: "Default",
       departman: "Default",
-      role: formValues.role === 'Admin' ? 'ADMIN' : 'BASIC',
+      role: formValues.role,
       aktivan: formValues.status === 'Active',
       permisije: this.mapPermissions(formValues),
       username: formValues.email.split('@')[0],

@@ -11,4 +11,5 @@ export interface Employee {
   departman?: string;
   aktivan?: boolean;
   permisije?: string[];
+  role: string;
 }

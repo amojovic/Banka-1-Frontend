@@ -3,7 +3,7 @@
     <h2 class="modal-title">Edit employee</h2>
 
     <form [formGroup]="editForm" (ngSubmit)="onSave()">
-      
+
       <div class="form-row" style="display: flex; gap: 16px; margin-bottom: 16px;">
         <div class="form-group" style="flex: 1;">
           <label>Ime: <span class="text-danger">*</span></label>
@@ -35,9 +35,11 @@
 
       <div class="form-group" style="margin-bottom: 16px;">
         <label>Role:</label>
-        <select formControlName="pozicija" class="modal-input select-icon">
-          <option value="Regular employee">Regular employee</option>
-          <option value="Admin">Admin</option>
+        <select formControlName="role" class="modal-input select-icon">
+          <option value="BASIC">Basic</option>
+          <option value="AGENT">Agent</option>
+          <option value="SUPERVISOR">Supervisor</option>
+          <option value="ADMIN">Admin</option>
         </select>
       </div>
 
@@ -47,28 +49,6 @@
           <option [ngValue]="true">Active</option>
           <option [ngValue]="false">Inactive</option>
         </select>
-      </div>
-
-      <div class="form-group" style="margin-bottom: 24px;">
-        <label>Permissions:</label>
-        <div class="permissions-grid">
-          <label class="checkbox-label">
-            <input type="checkbox" [checked]="editForm.get('permisije')?.value.includes('Create')" (change)="togglePermission('Create', $event)">
-            <span class="custom-checkbox"></span> Create
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" [checked]="editForm.get('permisije')?.value.includes('Edit')" (change)="togglePermission('Edit', $event)">
-            <span class="custom-checkbox"></span> Edit
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" [checked]="editForm.get('permisije')?.value.includes('Delete')" (change)="togglePermission('Delete', $event)">
-            <span class="custom-checkbox"></span> Delete
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" [checked]="editForm.get('permisije')?.value.includes('View')" (change)="togglePermission('View', $event)">
-            <span class="custom-checkbox"></span> View
-          </label>
-        </div>
       </div>
 
       <div class="modal-actions">

@@ -34,7 +34,8 @@ export class EmployeeEditComponent implements OnChanges {
       ime: ['', [Validators.required, Validators.minLength(2)]],
       prezime: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      pozicija: ['Regular employee'],
+      pozicija: [''],
+      role: ['BASIC'],
       aktivan: [true],
       permisije: [[]]
     });
@@ -51,7 +52,8 @@ export class EmployeeEditComponent implements OnChanges {
         ime: this.employee.ime || '',
         prezime: this.employee.prezime || '',
         email: this.employee.email || '',
-        pozicija: this.employee.pozicija || 'Regular employee',
+        pozicija: this.employee.pozicija || '',
+        role: this.employee.role || 'BASIC',
         aktivan: this.employee.aktivan !== false,
         permisije: this.employee.permisije ? [...this.employee.permisije] : []
       });
