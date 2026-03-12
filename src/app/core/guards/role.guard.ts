@@ -2,10 +2,46 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router, ActivatedRouteSnapshot } from '@angular/router';
 
 /**
+ * Mapa permisija po rolama zaposlenih.
+ * Koristi se kao fallback ukoliko backend ne vrati permisije direktno.
+ */
+export const ROLE_PERMISSIONS: Record<string, string[]> = {
+  EmployeeBasic: [
+    'BANKING_BASIC',
+    'CLIENT_MANAGE'
+  ],
+  EmployeeAgent: [
+    'BANKING_BASIC',
+    'CLIENT_MANAGE',
+    'SECURITIES_TRADE_LIMITED'
+  ],
+  EmployeeSupervisor: [
+    'BANKING_BASIC',
+    'CLIENT_MANAGE',
+    'SECURITIES_TRADE_LIMITED',
+    'SECURITIES_TRADE_UNLIMITED',
+    'TRADE_UNLIMITED',
+    'OTC_TRADE',
+    'FUND_AGENT_MANAGE'
+  ],
+  EmployeeAdmin: [
+    'BANKING_BASIC',
+    'CLIENT_MANAGE',
+    'SECURITIES_TRADE_LIMITED',
+    'SECURITIES_TRADE_UNLIMITED',
+    'TRADE_UNLIMITED',
+    'OTC_TRADE',
+    'FUND_AGENT_MANAGE',
+    'EMPLOYEE_MANAGE_ALL'
+  ]
+};
 
- Guard koji proverava da li ulogovani korisnik ima potrebnu permisiju za pristup ruti.
- Ukoliko korisnik nema odgovarajucu permisiju, preusmerava ga na /403 stranicu.
- @param route - Aktivna ruta koja sadrzi podatak o potrebnoj permisiji (data.permission)*/
+/**
+ * Guard koji proverava da li ulogovani korisnik ima potrebnu permisiju za pristup ruti.
+ * Permisije se čitaju direktno iz localStorage, ili se određuju na osnovu role korisnika.
+ * Ukoliko korisnik nema odgovarajuću permisiju, preusmerava ga na /403 stranicu.
+ * @param route - Aktivna ruta koja sadrži podatak o potrebnoj permisiji (data.permission)
+ */
 export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const router = inject(Router);
   const user = localStorage.getItem('loggedUser');
@@ -15,10 +51,17 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
     return false;
   }
 
-  const parsedUser: { email: string; permissions: string[] } = JSON.parse(user);
+  const parsedUser: { email: string; role: string; permissions: string[] } = JSON.parse(user);
   const requiredPermission: string = route.data['permission'];
 
-  if (!parsedUser.permissions.includes(requiredPermission)) {
+  // Ako ruta nema definisanu permisiju, propusti
+  if (!requiredPermission) return true;
+
+  // Koristimo permisije iz tokena, a kao fallback uzimamo permisije definisane po roli
+  const userPermissions = parsedUser.permissions ??
+    ROLE_PERMISSIONS[parsedUser.role] ?? [];
+
+  if (!userPermissions.includes(requiredPermission)) {
     router.navigate(['/403']);
     return false;
   }

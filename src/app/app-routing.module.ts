@@ -5,6 +5,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { EmployeeListComponent } from './features/employee/components/employee-list/employee-list.component';
 import { EmployeeCreateComponent } from './features/employee/components/employee-create/employee-create.component';
 import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 const routes: Routes = [
   // 1. RUTA ZA LOGIN (Otkomenatarisana da Guard ne bi bacao "Cannot match any routes" grešku)
@@ -18,14 +19,16 @@ const routes: Routes = [
   {
     path: 'employees/new',
     component: EmployeeCreateComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { permission: 'EMPLOYEE_MANAGE_ALL' }
   },
 
   // 3. RUTA ZA TABELU (Zaštićena gvardom)
   {
     path: 'employees',
     component: EmployeeListComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { permission: 'EMPLOYEE_MANAGE_ALL' }
   },
 
   // 4. POČETNA STRANA (Landing page)
