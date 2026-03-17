@@ -26,8 +26,8 @@ const routes: Routes = [
   {
     path: 'employees/accounts/new',
     component: AccountCreateComponent,
-    canActivate: [authGuard, roleGuard],
-    data: { permission: 'CLIENT_MANAGE' }
+    //canActivate: [authGuard, roleGuard],
+    //data: { permission: 'CLIENT_MANAGE' }
   },
   {
     path: 'users',
