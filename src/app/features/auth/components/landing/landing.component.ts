@@ -18,4 +18,14 @@ export class LandingComponent {
   public goToLogin(): void {
     this.router.navigate(['/login']);
   }
+//-----
+  public showAccountModal = false;
+
+  openModal(): void {
+    this.showAccountModal = true;
+  }
+
+  closeModal(): void {
+    this.showAccountModal = false;
+  }
 }
