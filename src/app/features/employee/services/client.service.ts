@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
+import { of, delay } from 'rxjs'; 
 
 export interface ClientDto {
   id: string | number;
@@ -14,6 +15,10 @@ export interface ClientDto {
   ime?: string;
   prezime?: string;
   brojTelefona?: string;
+  jmbg?: string;
+  adresa?: string;
+  pol?: string;
+  datumRodjenja?: number;
 }
 
 export interface ClientFilters {
@@ -68,6 +73,15 @@ export class ClientService {
     return this.http
       .get<ClientPageResponse | ClientDto[]>(this.base, { params })
       .pipe(map((response) => this.normalizePageResponse(response, page, size)));
+      
+  }
+
+  getClientById(id: string): Observable<any> {
+    return of({ success: true }).pipe(delay(500));
+  }
+
+  updateClient(id: string, data: any): Observable<any> {
+    return of({ success: true }).pipe(delay(500));
   }
 
   searchClients(query: string, page = 0, size = 10): Observable<ClientPageResponse> {

@@ -5,6 +5,7 @@ import { EmployeeListComponent } from './features/employee/components/employee-l
 import { EmployeeCreateComponent } from './features/employee/components/employee-create/employee-create.component';
 import { AccountCreateComponent } from './features/employee/components/account-create/account-create.component';
 import { ClientListComponent } from './features/employee/components/client-list/client-list.component';
+import { ClientDetailComponent } from './features/employee/components/client-detail/client-detail.component';
 import { AccountListComponent } from './features/client/components/account-list/account-list.component';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
@@ -33,8 +34,16 @@ const routes: Routes = [
   {
     path: 'employees/clients',
     component: ClientListComponent,
-    canActivate: [authGuard, roleGuard],
+    //Treba da se zakomentarise ako se radi na ovome jer funkcionalnost za gardove jos nije sredjena
+    canActivate: [authGuard, roleGuard], 
     data: { permission: 'CLIENT_MANAGE' }
+  },
+  {
+    path: 'employees/clients/:id',
+    component: ClientDetailComponent,
+    //Treba da se zakomentarise ako se radi na ovome jer funkcionalnost za gardove jos nije sredjena
+    canActivate: [authGuard, roleGuard],
+    data: { permission: 'CLIENT_MANAGE' } 
   },
   {
     path: 'users',
