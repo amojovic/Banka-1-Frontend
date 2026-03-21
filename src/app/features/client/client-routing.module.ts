@@ -11,10 +11,6 @@ const routes: Routes = [
   {
     path: 'accounts',
     component: AccountListComponent
-  },
-  {
-    path: 'accounts/payment/new', 
-    component: NewPaymentComponent
   }
 ];
 
