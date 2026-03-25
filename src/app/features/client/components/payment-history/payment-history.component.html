@@ -1,0 +1,191 @@
+<div class="layout">
+  <app-navbar></app-navbar>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar__search">
+        <span class="material-icons">search</span>
+        <input type="text" placeholder="Transakcije, računi, kartice." />
+      </div>
+
+      <div class="topbar__right">
+        <button class="topbar__icon-btn" title="Obaveštenja">
+          <span class="material-icons">notifications</span>
+        </button>
+        <button class="topbar__icon-btn" title="Pomoć">
+          <span class="material-icons">help_outline</span>
+        </button>
+        <span class="topbar__greeting">Dobro došli</span>
+        <button class="topbar__avatar" title="Profil">
+          <span class="material-icons">account_circle</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+      <h1 class="page-heading">PREGLED PLAĆANJA</h1>
+
+      <div class="card">
+        <div class="tabs">
+          <button
+            class="tab"
+            [class.tab--active]="activeTab === 'domestic'"
+            (click)="setActiveTab('domestic')"
+          >
+            Domaća plaćanja
+          </button>
+          <button
+            class="tab"
+            [class.tab--active]="activeTab === 'transfers'"
+            (click)="setActiveTab('transfers')"
+          >
+            Transferi
+          </button>
+        </div>
+
+        <div class="section-header">
+          <h2 class="section-title">Pregled plaćanja</h2>
+
+          <div class="filter-toolbar">
+            <button
+              type="button"
+              class="filter-btn"
+              (click)="toggleFilterPanel()"
+            >
+              <span class="material-icons">filter_list</span>
+              Filteri
+            </button>
+
+            <div class="filter-panel-backdrop" *ngIf="isFilterOpen" (click)="closeFilterPanel()"></div>
+
+            <div class="filter-panel" *ngIf="isFilterOpen">
+              <div class="filter-panel__header">
+                <h3>Filteri</h3>
+                <button type="button" class="filter-panel__close" (click)="closeFilterPanel()">
+                  <span class="material-icons">close</span>
+                </button>
+              </div>
+
+              <div class="filter-fields">
+                <div class="filter-group">
+                  <label for="dateFrom">Datum od</label>
+                  <input id="dateFrom" type="date" [(ngModel)]="draftFilters.dateFrom" />
+                </div>
+
+                <div class="filter-group">
+                  <label for="dateTo">Datum do</label>
+                  <input id="dateTo" type="date" [(ngModel)]="draftFilters.dateTo" />
+                </div>
+
+                <div class="filter-group">
+                  <label for="amountFrom">Iznos od</label>
+                  <input id="amountFrom" type="number" min="0" [(ngModel)]="draftFilters.amountFrom" placeholder="0.00" />
+                </div>
+
+                <div class="filter-group">
+                  <label for="amountTo">Iznos do</label>
+                  <input id="amountTo" type="number" min="0" [(ngModel)]="draftFilters.amountTo" placeholder="0.00" />
+                </div>
+
+                <div class="filter-group">
+                  <label for="status">Status</label>
+                  <select id="status" [(ngModel)]="draftFilters.status">
+                    <option *ngFor="let status of statusOptions" [value]="status.value">
+                      {{ status.label }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="filter-panel__actions">
+                <button type="button" class="clear-filters-btn" (click)="clearFilters()">
+                  Reset
+                </button>
+                <button type="button" class="apply-filters-btn" (click)="applyFilters()">
+                  Primeni
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <div class="table-state" *ngIf="isLoading">
+            <div class="spinner"></div>
+            <p>Učitavanje plaćanja.</p>
+          </div>
+
+          <div class="table-state table-state--error" *ngIf="!isLoading && errorMessage">
+            <p>{{ errorMessage }}</p>
+          </div>
+
+          <div class="table-state" *ngIf="!isLoading && !errorMessage && payments.length === 0">
+            <p>Nema plaćanja za zadate filtere.</p>
+          </div>
+
+          <table *ngIf="!isLoading && !errorMessage && payments.length > 0">
+            <thead>
+            <tr>
+              <th>DATUM</th>
+              <th>NAZIV PLATIOCA</th>
+              <th>VALUTA</th>
+              <th>IZNOS</th>
+              <th>STATUS</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr
+              *ngFor="let payment of payments; trackBy: trackByPaymentId"
+              class="table-row"
+              (click)="openTransactionDetails(payment)"
+            >
+              <td class="cell-date">{{ formatDate(payment.date) }}</td>
+              <td class="cell-name">{{ payment.payerName }}</td>
+              <td class="cell-currency">{{ payment.currency }}</td>
+              <td class="cell-amount">{{ formatAmount(payment.amount) }}</td>
+              <td class="cell-status">
+                  <span
+                    class="status-badge"
+                    [ngClass]="getStatusClass(payment.status)"
+                  >
+                    {{ getStatusLabel(payment.status) }}
+                  </span>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer" *ngIf="!isLoading && !errorMessage && totalElements > 0">
+          <span class="table-footer__summary">
+            Prikazuje se {{ currentPage * pageSize + 1 }} do {{ getLastItem() }} od {{ totalElements }} stavke
+          </span>
+
+          <div class="table-footer__pagination">
+            <button
+              class="pagination-btn"
+              [disabled]="currentPage === 0"
+              (click)="goToPage(currentPage - 1)"
+            >
+              <span class="material-icons">chevron_left</span>
+            </button>
+            <span class="pagination-current">{{ currentPage + 1 }}</span>
+            <button
+              class="pagination-btn"
+              [disabled]="currentPage >= totalPages - 1"
+              (click)="goToPage(currentPage + 1)"
+            >
+              <span class="material-icons">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-transaction-detail-modal
+    *ngIf="isDetailsModalOpen && selectedPayment"
+    [payment]="selectedPayment"
+    (close)="closeTransactionDetails()">
+  </app-transaction-detail-modal>
+</div>
