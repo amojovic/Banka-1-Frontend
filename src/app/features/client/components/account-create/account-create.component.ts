@@ -343,7 +343,7 @@ export class AccountCreateComponent implements OnInit, OnDestroy {
   }
 
   private get selectedKind(): AccountKind {
-    return this.form.get('kind')?.value.toString();
+    return this.form.get('kind')?.value;
   }
 
   private get selectedSubtype(): string | null {
