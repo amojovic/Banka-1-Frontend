@@ -16,7 +16,7 @@ import { NavbarComponent } from 'src/app/shared/components/navbar/navbar.compone
   styleUrls: ['./account-management.component.scss']
 })
 export class AccountManagementComponent implements OnInit {
-  accounts: Account[] = [];
+  allAccounts: Account[] = [];
   filteredAccounts: Account[] = [];
 
   searchQuery = '';
@@ -24,6 +24,11 @@ export class AccountManagementComponent implements OnInit {
 
   showConfirmModal = false;
   selectedAccount: Account | null = null;
+
+  currentPage = 0;
+  pageSize = 10;
+  totalPages = 0;
+  totalFilteredElements = 0;
 
   constructor(
     private readonly accountService: AccountService,
@@ -44,7 +49,7 @@ export class AccountManagementComponent implements OnInit {
   }
 
   private sortByLastName(): void {
-    this.accounts.sort((a, b) =>
+    this.allAccounts.sort((a, b) =>
       this.getLastName(a.ownerName || '').localeCompare(
         this.getLastName(b.ownerName || '')
       )
@@ -66,20 +71,30 @@ export class AccountManagementComponent implements OnInit {
   private applyFilters(): void {
     const query = this.searchQuery.trim().toLowerCase();
 
-    if (!query) {
-      this.filteredAccounts = [...this.accounts];
-      return;
+    let filtered = this.allAccounts;
+
+    if (query) {
+      const isAccountSearch = /\d/.test(query);
+
+      filtered = this.allAccounts.filter((acc) => {
+        if (isAccountSearch) {
+          return (acc.accountNumber || '').toLowerCase().startsWith(query);
+        }
+
+        return this.matchesOwnerPrefix(acc.ownerName || '', query);
+      });
     }
 
-    const isAccountSearch = /\d/.test(query);
+    this.totalFilteredElements = filtered.length;
+    this.currentPage = 0;
+    this.updatePagedResults(filtered);
+  }
 
-    this.filteredAccounts = this.accounts.filter((acc) => {
-      if (isAccountSearch) {
-        return (acc.accountNumber || '').toLowerCase().startsWith(query);
-      }
-
-      return this.matchesOwnerPrefix(acc.ownerName || '', query);
-    });
+  private updatePagedResults(sourceAccounts: Account[]): void {
+    const startIndex = this.currentPage * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.filteredAccounts = sourceAccounts.slice(startIndex, endIndex);
+    this.totalPages = Math.ceil(sourceAccounts.length / this.pageSize);
   }
 
   onSearch(): void {
@@ -88,19 +103,98 @@ export class AccountManagementComponent implements OnInit {
 
   loadAccounts(): void {
     this.isLoading = true;
+    this.currentPage = 0;
 
-    this.accountService.getAllAccounts().subscribe({
-      next: (accounts) => {
-        this.accounts = accounts || [];
-        this.sortByLastName();
-        this.applyFilters();
-        this.isLoading = false;
+    this.accountService.getAllAccountsPaginated(0, this.pageSize).subscribe({
+      next: (response) => {
+        const totalPages = response.totalPages || 1;
+        let loadedPages = 1;
+        const allAccounts: Account[] = this.mapResponseContent(response.content);
+
+        if (totalPages === 1) {
+          this.finishLoading(allAccounts);
+          return;
+        }
+
+        const pageRequests = [];
+        for (let page = 1; page < totalPages; page++) {
+          pageRequests.push(
+            this.accountService.getAllAccountsPaginated(page, this.pageSize)
+          );
+        }
+
+        if (pageRequests.length === 0) {
+          this.finishLoading(allAccounts);
+          return;
+        }
+
+        let completedRequests = 0;
+        pageRequests.forEach((request) => {
+          request.subscribe({
+            next: (pageResponse) => {
+              allAccounts.push(...this.mapResponseContent(pageResponse.content));
+              completedRequests++;
+
+              if (completedRequests === pageRequests.length) {
+                this.finishLoading(allAccounts);
+              }
+            },
+            error: (err: HttpErrorResponse) => {
+              this.isLoading = false;
+              this.toastService.error(
+                err.error?.message || 'Greška pri učitavanju računa.'
+              );
+            }
+          });
+        });
       },
       error: (err: HttpErrorResponse) => {
         this.isLoading = false;
-        this.toastService.error(err.error?.message || 'Greška pri učitavanju računa.');
+        this.toastService.error(
+          err.error?.message || 'Greška pri učitavanju računa.'
+        );
       }
-    });    
+    });
+  }
+
+  private finishLoading(allAccounts: Account[]): void {
+    this.allAccounts = allAccounts;
+    this.sortByLastName();
+    this.applyFilters();
+    this.isLoading = false;
+  }
+
+  private mapResponseContent(content: any[]): Account[] {
+    if (!content) return [];
+
+    return content.map((item: any) => {
+      const ownerName = `${item.ime || ''} ${item.prezime || ''}`.trim();
+      const subtype = this.mapToSubtype(
+        item.accountOwnershipType,
+        item.tekuciIliDevizni
+      );
+      return {
+        id: 0,
+        name: ownerName,
+        accountNumber: item.brojRacuna || '',
+        balance: 0,
+        availableBalance: 0,
+        reservedFunds: 0,
+        currency: item.tekuciIliDevizni === 'devizni' ? 'EUR' : 'RSD',
+        status: 'ACTIVE',
+        subtype: subtype,
+        ownerId: 0,
+        ownerName: ownerName,
+        employeeId: 0,
+        maintenanceFee: 0,
+        dailyLimit: 0,
+        monthlyLimit: 0,
+        dailySpending: 0,
+        monthlySpending: 0,
+        createdAt: new Date().toISOString(),
+        expiryDate: '',
+      } as Account;
+    });
   }
 
   getOwnershipType(account: Account): string {
@@ -173,5 +267,60 @@ export class AccountManagementComponent implements OnInit {
 
   trackByAccount(index: number, account: Account): number {
     return account.id;
+  }
+
+  private mapToSubtype(ownership: string, type: string): any {
+    if (ownership === 'BUSINESS') {
+      return type === 'devizni' ? 'FOREIGN_BUSINESS' : 'DOO';
+    }
+    return type === 'devizni' ? 'FOREIGN_PERSONAL' : 'STANDARD';
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.updatePagedResults(this.getFilteredAccountsList());
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.updatePagedResults(this.getFilteredAccountsList());
+    }
+  }
+
+  goToPage(page: number): void {
+    if (page >= 0 && page < this.totalPages) {
+      this.currentPage = page;
+      this.updatePagedResults(this.getFilteredAccountsList());
+    }
+  }
+
+  private getFilteredAccountsList(): Account[] {
+    const query = this.searchQuery.trim().toLowerCase();
+    let filtered = this.allAccounts;
+
+    if (query) {
+      const isAccountSearch = /\d/.test(query);
+
+      filtered = this.allAccounts.filter((acc) => {
+        if (isAccountSearch) {
+          return (acc.accountNumber || '').toLowerCase().startsWith(query);
+        }
+
+        return this.matchesOwnerPrefix(acc.ownerName || '', query);
+      });
+    }
+
+    return filtered;
+  }
+
+  get isFirstPage(): boolean {
+    return this.currentPage === 0;
+  }
+
+  get isLastPage(): boolean {
+    return this.currentPage >= this.totalPages - 1;
   }
 }

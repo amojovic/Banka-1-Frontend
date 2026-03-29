@@ -59,7 +59,7 @@ export class UserCreateComponent {
         const createdName = `${this.firstName} ${this.lastName}`.trim();
         
           // Read returnUrl from query params (if provided)
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/employees/accounts/new';
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/clients';
           
           // Navigate back to returnUrl with navigation state containing createdClientId and name
         this.router.navigateByUrl(returnUrl, { state: { createdClientId: createdId, createdClientName: createdName } });

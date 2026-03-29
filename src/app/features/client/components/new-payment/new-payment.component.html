@@ -37,9 +37,9 @@
           </div>
           <div>
             <label class="z-label">Račun primaoca</label>
-            <input type="text" formControlName="receiverAccount" class="z-input" placeholder="Npr. 265000000123456789"
+            <input type="text" formControlName="receiverAccount" class="z-input" placeholder="Npr. 2650000001234567890"
                    [class.border-red-400]="paymentForm.get('receiverAccount')?.invalid && paymentForm.get('receiverAccount')?.touched" />
-            <p class="z-error" *ngIf="paymentForm.get('receiverAccount')?.invalid && paymentForm.get('receiverAccount')?.touched">Unesite ispravan broj računa (18 cifara).</p>
+            <p class="z-error" *ngIf="paymentForm.get('receiverAccount')?.invalid && paymentForm.get('receiverAccount')?.touched">Unesite ispravan broj računa (19 cifara).</p>
           </div>
         </div>
 

@@ -26,66 +26,34 @@ export class AccountService {
         const mapped = res.content.map((item: any) =>
           this.mapToAccountFromClient(item),
         );
-        console.log('Loaded accounts with currencies:', mapped.map((a: Account) => ({ name: a.name, accountNumber: a.accountNumber, currency: a.currency })));
+        console.log(
+          'Loaded accounts with currencies:',
+          mapped.map((a: Account) => ({
+            name: a.name,
+            accountNumber: a.accountNumber,
+            currency: a.currency,
+          })),
+        );
         return mapped;
       }),
     );
   }
+
   /**
-   * Employee endpoint for all accounts in the system.
+   * Employee endpoint for all accounts in the system with pagination support.
    */
-  getAllAccounts(): Observable<Account[]> {
-    const page = 0;
-    const size = 10;
+  getAllAccountsPaginated(
+    page: number = 0,
+    size: number = 10,
+  ): Observable<any> {
     const params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
 
-    return this.http
-      .get<any>(`${environment.apiUrl}/accounts/employee/accounts`, { params })
-      .pipe(
-        map((res) => {
-          if (!res.content) return [];
-          return res.content.map((item: any) => this.mapToAccount(item));
-        }),
-      );
-  }
-
-  private mapToAccount(item: any): Account {
-    const ownerName = `${item.ime || ''} ${item.prezime || ''}`.trim();
-    const subtype = this.mapToSubtype(
-      item.accountOwnershipType,
-      item.tekuciIliDevizni,
+    return this.http.get<any>(
+      `${environment.apiUrl}/accounts/employee/accounts`,
+      { params },
     );
-
-    return {
-      id: 0, // Not provided by API
-      name: ownerName,
-      accountNumber: item.brojRacuna || '',
-      balance: 0,
-      availableBalance: 0,
-      reservedFunds: 0,
-      currency: item.tekuciIliDevizni === 'devizni' ? 'EUR' : 'RSD', // Default to EUR for devizni
-      status: 'ACTIVE', // Default status
-      subtype: subtype,
-      ownerId: 0,
-      ownerName: ownerName,
-      employeeId: 0,
-      maintenanceFee: 0,
-      dailyLimit: 0,
-      monthlyLimit: 0,
-      dailySpending: 0,
-      monthlySpending: 0,
-      createdAt: new Date().toISOString(),
-      expiryDate: '',
-    } as Account;
-  }
-
-  private mapToSubtype(ownership: string, type: string): any {
-    if (ownership === 'BUSINESS') {
-      return type === 'devizni' ? 'FOREIGN_BUSINESS' : 'DOO';
-    }
-    return type === 'devizni' ? 'FOREIGN_PERSONAL' : 'STANDARD';
   }
 
   private mapToAccountFromClient(item: any): Account {
@@ -96,7 +64,7 @@ export class AccountService {
 
     // Try to get currency from multiple possible field names
     const currency = item.currency || item.valuta || item.tek || 'RSD';
-    
+
     return {
       id: this.hashAccountNumber(item.brojRacuna), // Generate unique ID from account number
       name: item.nazivRacuna || '',
@@ -140,9 +108,12 @@ export class AccountService {
     size = 5,
   ): Observable<Transaction[]> {
     return this.http
-      .get<TransactionPage>(`${environment.apiUrl}/transactions/employee/accounts/${accountNumber}`, {
-        params: { page: page.toString(), size: size.toString() },
-      })
+      .get<TransactionPage>(
+        `${environment.apiUrl}/transactions/employee/accounts/${accountNumber}`,
+        {
+          params: { page: page.toString(), size: size.toString() },
+        },
+      )
       .pipe(map((res) => res.content));
   }
 
@@ -172,17 +143,11 @@ export class AccountService {
   }
 
   createFxAccount(payload: any): Observable<any> {
-    return this.http.post(
-      `${this.api}/employee/accounts/fx`,
-      payload,
-    );
+    return this.http.post(`${this.api}/employee/accounts/fx`, payload);
   }
 
   createCheckingAccount(payload: any): Observable<any> {
-    return this.http.post(
-      `${this.api}/employee/accounts/checking`,
-      payload,
-    );
+    return this.http.post(`${this.api}/employee/accounts/checking`, payload);
   }
 
   /**
@@ -208,7 +173,7 @@ export class AccountService {
     let hash = 0;
     for (let i = 0; i < accountNumber.length; i++) {
       const char = accountNumber.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32bit integer
     }
     return Math.abs(hash);

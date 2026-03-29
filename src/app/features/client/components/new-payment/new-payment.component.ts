@@ -45,8 +45,8 @@ export class NewPaymentComponent implements OnInit {
     this.paymentForm = this.fb.group({
       senderAccount: ['', Validators.required],
       receiverName: ['', Validators.required],
-      // Tačno 18 cifara za račun primaoca
-      receiverAccount: ['', [Validators.required, Validators.pattern('^[0-9]{18}$')]],
+      // Tačno 19 cifara za račun primaoca
+      receiverAccount: ['', [Validators.required, Validators.pattern('^[0-9]{19}$')]],
       // Iznos mora biti veći od 0
       amount: ['', [Validators.required, Validators.min(0.01)]],
       // Šifra plaćanja: tačno 3 cifre, default za e-banking je obično 289

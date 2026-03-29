@@ -7,6 +7,7 @@ import { takeUntil } from 'rxjs/operators';
 import { AccountService } from '../../services/account.service';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { type ClientDto, ClientService } from '../../services/client.service';
+import { exactDigitsValidator } from '../../../../shared/utils/validators';
 /**
  * Tip računa.
  */
@@ -228,6 +229,55 @@ export class AccountCreateComponent implements OnInit, OnDestroy {
    * Obrađuje submit forme.
    * Trenutno samo formira i ispisuje payload.
    */
+    //----------------------------------------------------------------------
+    // SIFRE DELATNOSTI, OBAVEZNO
+    //----------------------------------------------------------------------
+    // 1.11 - Uzgoj žitarica i mahunarki
+    // 1.13 - Uzgoj povrća
+    // 13.1 - Priprema i predenje tekstilnih vlakana
+    // 24.1 - Proizvodnja gvožđa i čelika
+    // 24.2 - Proizvodnja čeličnih cevi
+    // 41.1 - Razvoj građevinskih projekata
+    // 41.2 - Izgradnja stambenih i nestambenih zgrada
+    // 42.11 - Izgradnja puteva i autoputeva
+    // 42.12 - Izgradnja železničkih i podzemnih pruga
+    // 42.13 - Izgradnja mostova i tunela
+    // 42.21 - Izgradnja vodovodnih projekata
+    // 42.22 - Izgradnja elektroenergetskih mreža
+    // 5.1 - Vađenje uglja
+    // 7.1 - Vađenje gvozdenih ruda
+    // 8.11 - Eksploatacija kamena
+    // 47.11 - Trgovina na malo
+    // 56.1 - Restorani i ugostiteljstvo
+    // 62.01 - Računarsko programiranje
+    // 62.09 - Ostale IT usluge
+    // 63.11 - Obrada podataka i hosting
+    // 64.19 - Ostale finansijske delatnosti
+    // 64.91 - Finansijski lizing
+    // 65.11 - Životno osiguranje
+    // 65.12 - Neživotno osiguranje
+    // 66.21 - Procena rizika i štete
+    // 68.1 - Poslovanje nekretninama
+    // 53.1 - Poštanske aktivnosti
+    // 53.2 - Kurirske aktivnosti
+    // 85.1 - Predškolsko obrazovanje
+    // 85.2 - Osnovno obrazovanje
+    // 86.1 - Bolničke aktivnosti
+    // 86.21 - Opšta medicinska praksa
+    // 86.22 - Specijalistička medicinska praksa
+    // 86.9 - Ostale zdravstvene aktivnosti
+    // 84.12 - Regulisanje delatnosti privrede
+    // 90.01 - Delatnost pozorišta
+    // 90.02 - Delatnost muzeja
+    // 90.04 - Botanički i zoološki vrtovi
+    // 93.11 - Sportski objekti
+    // 93.13 - Delatnost teretana
+    // 93.19 - Ostale sportske aktivnosti
+    // 26.11 - Proizvodnja elektronskih komponenti
+    // 27.12 - Proizvodnja električnih panela
+    // 29.1 - Proizvodnja motornih vozila
+
+
   public submit(): void {
     this.submitted = true;
 
@@ -243,7 +293,7 @@ export class AccountCreateComponent implements OnInit, OnDestroy {
           poreskiBroj: this.form.get('companyTaxId')?.value,
           sifraDelatnosti: this.form.get('companyActivityCode')?.value,
           adresa: this.form.get('companyAddress')?.value,
-          vlasnik: this.form.get('ownerId')?.value
+          vlasnik: +this.form.get('ownerId')?.value
         }
       : undefined;
 
@@ -421,24 +471,31 @@ export class AccountCreateComponent implements OnInit, OnDestroy {
    * Ažurira validacije poslovnih polja.
    */
   private updateBusinessValidators(): void {
-    const companyFields: string[] = [
-      'companyName',
-      'companyNumber',
-      'companyTaxId',
-      'companyActivityCode',
-      'companyAddress'
-    ];
+    const companyName = this.form.get('companyName');
+    const companyNumber = this.form.get('companyNumber');
+    const companyTaxId = this.form.get('companyTaxId');
+    const companyActivityCode = this.form.get('companyActivityCode');
+    const companyAddress = this.form.get('companyAddress');
 
-    companyFields.forEach((field: string) => {
-      const control = this.form.get(field);
-      control?.clearValidators();
+    companyName?.clearValidators();
+    companyNumber?.clearValidators();
+    companyTaxId?.clearValidators();
+    companyActivityCode?.clearValidators();
+    companyAddress?.clearValidators();
 
-      if (this.isBusiness()) {
-        control?.setValidators([Validators.required]);
-      }
+    if (this.isBusiness()) {
+      companyName?.setValidators([Validators.required]);
+      companyNumber?.setValidators([Validators.required, exactDigitsValidator(8)]);
+      companyTaxId?.setValidators([Validators.required, exactDigitsValidator(9)]);
+      companyActivityCode?.setValidators([Validators.required]);
+      companyAddress?.setValidators([Validators.required]);
+    }
 
-      control?.updateValueAndValidity({ emitEvent: false });
-    });
+    companyName?.updateValueAndValidity({ emitEvent: false });
+    companyNumber?.updateValueAndValidity({ emitEvent: false });
+    companyTaxId?.updateValueAndValidity({ emitEvent: false });
+    companyActivityCode?.updateValueAndValidity({ emitEvent: false });
+    companyAddress?.updateValueAndValidity({ emitEvent: false });
   }
 
   /**

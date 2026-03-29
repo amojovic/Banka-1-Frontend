@@ -102,13 +102,21 @@
             <div class="space-y-1.5">
               <label for="companyNumber" class="z-label">Matični broj</label>
               <input id="companyNumber" formControlName="companyNumber" class="z-input" />
-              <small *ngIf="isInvalid('companyNumber')" class="z-error">Matični broj je obavezan.</small>
+              <small *ngIf="isInvalid('companyNumber')" class="z-error">
+                <span *ngIf="form.get('companyNumber')?.hasError('required')">Matični broj je obavezan.</span>
+                <span *ngIf="form.get('companyNumber')?.hasError('notDigitsOnly')">Matični broj može sadržavati samo cifre.</span>
+                <span *ngIf="form.get('companyNumber')?.hasError('exactDigits')">Matični broj mora sadržavati tačno 8 cifara.</span>
+              </small>
             </div>
 
             <div class="space-y-1.5">
               <label for="companyTaxId" class="z-label">PIB</label>
               <input id="companyTaxId" formControlName="companyTaxId" class="z-input" />
-              <small *ngIf="isInvalid('companyTaxId')" class="z-error">PIB je obavezan.</small>
+              <small *ngIf="isInvalid('companyTaxId')" class="z-error">
+                <span *ngIf="form.get('companyTaxId')?.hasError('required')">PIB je obavezan.</span>
+                <span *ngIf="form.get('companyTaxId')?.hasError('notDigitsOnly')">PIB može sadržavati samo cifre.</span>
+                <span *ngIf="form.get('companyTaxId')?.hasError('exactDigits')">PIB mora sadržavati tačno 9 cifara.</span>
+              </small>
             </div>
 
             <div class="space-y-1.5">
