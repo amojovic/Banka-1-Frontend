@@ -173,10 +173,11 @@ export class AccountManagementComponent implements OnInit {
         item.accountOwnershipType,
         item.tekuciIliDevizni
       );
+      const accountNumber = item.brojRacuna || '';
       return {
         id: 0,
         name: ownerName,
-        accountNumber: item.brojRacuna || '',
+        accountNumber: accountNumber,
         balance: 0,
         availableBalance: 0,
         reservedFunds: 0,
@@ -231,17 +232,24 @@ export class AccountManagementComponent implements OnInit {
     const targetStatus = active ? 'INACTIVE' : 'ACTIVE';
 
     this.accountService
-      .updateAccountStatus(+account.accountNumber, targetStatus as 'ACTIVE' | 'INACTIVE')
+      .updateAccountStatus(account.accountNumber, targetStatus as 'ACTIVE' | 'INACTIVE')
       .subscribe({
         next: () => {
-          account.status = targetStatus as Account['status'];
-          this.applyFilters();
+          try {
+            account.status = targetStatus as Account['status'];
+            this.applyFilters();
 
-          this.toastService.success(
-            `Račun je uspešno ${active ? 'deaktiviran' : 'aktiviran'}.`
-          );
+            this.toastService.success(
+              `Račun je uspešno ${active ? 'deaktiviran' : 'aktiviran'}.`
+            );
 
-          this.closeConfirmModal();
+            this.closeConfirmModal();
+          } catch (err) {
+            this.toastService.error(
+              `Greška pri ${active ? 'deaktivaciji' : 'aktivaciji'} računa.`
+            );
+            this.closeConfirmModal();
+          }
         },
         error: (err: HttpErrorResponse) => {
           this.toastService.error(
@@ -265,8 +273,8 @@ export class AccountManagementComponent implements OnInit {
     });
   }
 
-  trackByAccount(index: number, account: Account): number {
-    return account.id;
+  trackByAccount(index: number, account: Account): string {
+    return account.accountNumber;
   }
 
   private mapToSubtype(ownership: string, type: string): any {

@@ -155,14 +155,13 @@ export class AccountService {
    * Backend endpoint is expected to accept status update.
    */
   updateAccountStatus(
-    accountNumber: number,
+    accountNumber: string,
     status: 'ACTIVE' | 'INACTIVE',
-  ): Observable<void> {
-    return this.http.put<void>(
+  ): Observable<any> {
+    return this.http.put<any>(
       `${this.api}/employee/accounts/${accountNumber}/status`,
-      {
-        status,
-      },
+      { status },
+      { responseType: 'text' as 'json' }
     );
   }
 
