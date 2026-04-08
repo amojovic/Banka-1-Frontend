@@ -110,7 +110,15 @@ export class CurrencyCalculatorComponent implements OnInit, OnChanges {
    * Logika konverzije je u ExchangeRateService.convert().
    */
   calculate(): void {
-    if (!this.amount || this.amount <= 0 || this.rates.length === 0) return;
+    if (this.rates.length === 0) {
+      this.error = 'Kursevi nisu dostupni. Pokušajte da osvežite stranicu.';
+      return;
+    }
+    if (!this.amount || this.amount <= 0) {
+      this.error = 'Unesite validan iznos.';
+      return;
+    }
+    this.error = null;
     const { result, usedRate } = this.exchangeRateService.convert(
       this.amount, this.fromCurrency, this.toCurrency, this.rates
     );

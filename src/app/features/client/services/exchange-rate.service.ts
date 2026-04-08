@@ -64,26 +64,48 @@ export class ExchangeRateService {
    * Prodajni kurs = middleRate * (1 + provizija)
    */
   private mapResponse(res: any): ExchangeRatesResult {
+    if (!res.rates || typeof res.rates !== 'object') {
+      throw new Error('Nevaljani format API odgovora');
+    }
+
     const ratesInRSD: Record<string, number> = res.rates;
 
-    const rates: ExchangeRate[] = SUPPORTED_CURRENCIES.map(code => {
-      const middleRate = 1 / ratesInRSD[code];
-      const sellRate   = middleRate * (1 + SELL_COMMISSION);
-      const buyRate    = middleRate * (1 - BUY_COMMISSION);
-      return {
-        currency: code,
-        name:     CURRENCY_META[code].name,
-        flag:     CURRENCY_META[code].flag,
-        buyRate,
-        sellRate,
-        middleRate,
-      };
-    });
+    const rates: ExchangeRate[] = SUPPORTED_CURRENCIES
+      .filter(code => code in ratesInRSD && ratesInRSD[code] > 0)
+      .map(code => {
+        const middleRate = 1 / ratesInRSD[code];
+        const sellRate   = middleRate * (1 + SELL_COMMISSION);
+        const buyRate    = middleRate * (1 - BUY_COMMISSION);
+        return {
+          currency: code,
+          name:     CURRENCY_META[code].name,
+          flag:     CURRENCY_META[code].flag,
+          buyRate,
+          sellRate,
+          middleRate,
+        };
+      });
+
+    if (rates.length === 0) {
+      throw new Error('Nema validnih kurseva u API odgovoru');
+    }
 
     return {
       rates,
       lastUpdated: new Date(res.time_last_update_utc ?? Date.now()),
     };
+  }
+
+  /**
+   * Pronalazi kurs za datu valutu.
+   * Baca grešku ako valuta nije podržana.
+   */
+  private findRate(code: string, rates: ExchangeRate[]): ExchangeRate {
+    const rate = rates.find(r => r.currency === code);
+    if (!rate) {
+      throw new Error(`Valuta ${code} nije podržana`);
+    }
+    return rate;
   }
 
   /**
@@ -100,21 +122,19 @@ export class ExchangeRateService {
   ): { result: number; usedRate: number } {
     if (fromCurrency === toCurrency) return { result: amount, usedRate: 1 };
 
-    const find = (code: string) => rates.find(r => r.currency === code)!;
-
     if (fromCurrency === 'RSD') {
-      const to = find(toCurrency);
+      const to = this.findRate(toCurrency, rates);
       return { result: amount / to.sellRate, usedRate: to.sellRate };
     }
 
     if (toCurrency === 'RSD') {
-      const from = find(fromCurrency);
+      const from = this.findRate(fromCurrency, rates);
       return { result: amount * from.buyRate, usedRate: from.buyRate };
     }
 
     // Strana → Strana: kroz RSD
-    const from  = find(fromCurrency);
-    const to    = find(toCurrency);
+    const from  = this.findRate(fromCurrency, rates);
+    const to    = this.findRate(toCurrency, rates);
     const inRSD = amount * from.buyRate;
     return { result: inRSD / to.sellRate, usedRate: to.sellRate };
   }
