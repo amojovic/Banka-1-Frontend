@@ -9,6 +9,8 @@ import { TransactionDetailModalComponent } from './modals/transaction-detail-mod
 import {CardListComponent} from "@/features/client/components/card-list/card-list.component";
 import { LoanListComponent } from './components/loan-list/loan-list.component';
 import {RequestCardComponent} from "@/features/client/components/request-card/request-card.component";
+import { LoanRequestComponent } from './components/loan-request/loan-request.component';
+
 @NgModule({
   declarations: [
 
@@ -24,7 +26,8 @@ import {RequestCardComponent} from "@/features/client/components/request-card/re
     NewPaymentComponent,
     CardListComponent,
     LoanListComponent,
-    RequestCardComponent
+    RequestCardComponent,
+    LoanRequestComponent
   ]
 })
 export class ClientModule {}
