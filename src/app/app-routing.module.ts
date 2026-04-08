@@ -162,7 +162,7 @@ const routes: Routes = [
   {
     path: 'exchange',
     component: ExchangeRateComponent,
-    //canActivate: [authGuard]
+    canActivate: [authGuard]
   },
   {
     path: '**',
