@@ -239,19 +239,6 @@ export class SecuritiesService {
   }
 
   /**
-   * Get forex by ticker
-   */
-  getForexByTicker(ticker: string): Observable<Forex> {
-    return this.getMockForex({}, 0, 100).pipe(
-      map(page => {
-        const forex = page.content.find(f => f.ticker === ticker);
-        if (!forex) throw new Error(`Forex ${ticker} not found`);
-        return forex;
-      })
-    );
-  }
-
-  /**
    * Get price history for a security
    */
   getPriceHistory(ticker: string, period: string): Observable<PriceHistory> {
@@ -311,103 +298,6 @@ export class SecuritiesService {
   }
 
   // ─── Mock Data Methods ────────────────────────────────────────────────────
-
-  private getMockForex(
-    filters: SecuritiesFilters,
-    page: number,
-    size: number,
-    sort?: SortConfig
-  ): Observable<SecuritiesPage<Forex>> {
-    const allForex: Forex[] = [
-      {
-        id: 201, ticker: 'EUR/USD', name: 'Euro / US Dollar', exchange: 'FOREX', price: 1.0845, currency: 'USD',
-        change: 0.0023, changePercent: 0.21, volume: 125000000, maintenanceMargin: 2500.00,
-        initialMarginCost: 2750.00, type: 'FOREX', lastUpdated: new Date().toISOString(),
-        baseCurrency: 'EUR', quoteCurrency: 'USD', bid: 1.0843, ask: 1.0847, spread: 0.0004,
-        high: 1.0880, low: 1.0810, open: 1.0825, previousClose: 1.0822
-      },
-      {
-        id: 202, ticker: 'GBP/USD', name: 'British Pound / US Dollar', exchange: 'FOREX', price: 1.2650, currency: 'USD',
-        change: -0.0045, changePercent: -0.35, volume: 89000000, maintenanceMargin: 3200.00,
-        initialMarginCost: 3520.00, type: 'FOREX', lastUpdated: new Date().toISOString(),
-        baseCurrency: 'GBP', quoteCurrency: 'USD', bid: 1.2648, ask: 1.2652, spread: 0.0004,
-        high: 1.2720, low: 1.2630, open: 1.2695, previousClose: 1.2695
-      },
-      {
-        id: 203, ticker: 'USD/JPY', name: 'US Dollar / Japanese Yen', exchange: 'FOREX', price: 151.25, currency: 'JPY',
-        change: 0.85, changePercent: 0.56, volume: 98000000, maintenanceMargin: 2800.00,
-        initialMarginCost: 3080.00, type: 'FOREX', lastUpdated: new Date().toISOString(),
-        baseCurrency: 'USD', quoteCurrency: 'JPY', bid: 151.23, ask: 151.27, spread: 0.04,
-        high: 151.80, low: 150.20, open: 150.50, previousClose: 150.40
-      },
-      {
-        id: 204, ticker: 'USD/CHF', name: 'US Dollar / Swiss Franc', exchange: 'FOREX', price: 0.8945, currency: 'CHF',
-        change: 0.0012, changePercent: 0.13, volume: 45000000, maintenanceMargin: 2600.00,
-        initialMarginCost: 2860.00, type: 'FOREX', lastUpdated: new Date().toISOString(),
-        baseCurrency: 'USD', quoteCurrency: 'CHF', bid: 0.8943, ask: 0.8947, spread: 0.0004,
-        high: 0.8980, low: 0.8920, open: 0.8935, previousClose: 0.8933
-      },
-      {
-        id: 205, ticker: 'AUD/USD', name: 'Australian Dollar / US Dollar', exchange: 'FOREX', price: 0.6525, currency: 'USD',
-        change: -0.0018, changePercent: -0.28, volume: 56000000, maintenanceMargin: 2100.00,
-        initialMarginCost: 2310.00, type: 'FOREX', lastUpdated: new Date().toISOString(),
-        baseCurrency: 'AUD', quoteCurrency: 'USD', bid: 0.6523, ask: 0.6527, spread: 0.0004,
-        high: 0.6560, low: 0.6510, open: 0.6545, previousClose: 0.6543
-      },
-    ];
-
-    let filtered = this.applyFilters(allForex, filters);
-
-    // Apply bid/ask filters for forex
-    if (filters.bidMin !== undefined) {
-      filtered = filtered.filter(f => f.bid >= filters.bidMin!);
-    }
-    if (filters.bidMax !== undefined) {
-      filtered = filtered.filter(f => f.bid <= filters.bidMax!);
-    }
-    if (filters.askMin !== undefined) {
-      filtered = filtered.filter(f => f.ask >= filters.askMin!);
-    }
-    if (filters.askMax !== undefined) {
-      filtered = filtered.filter(f => f.ask <= filters.askMax!);
-    }
-
-    if (sort) {
-      filtered = this.applySorting(filtered, sort);
-    }
-
-    return this.paginate(filtered, page, size);
-  }
-
-  private getMockPriceHistory(ticker: string, period: string): Observable<PriceHistory> {
-    const now = new Date();
-    const data: PricePoint[] = [];
-    let days: number;
-
-    switch (period) {
-      case 'day': days = 1; break;
-      case 'week': days = 7; break;
-      case 'month': days = 30; break;
-      case 'year': days = 365; break;
-      case '5year': days = 1825; break;
-      default: days = 2500; // from start
-    }
-
-    const basePrice = 100;
-    for (let i = days; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      const randomChange = (Math.random() - 0.48) * 5;
-      const price = basePrice + (days - i) * 0.1 + randomChange;
-      data.push({
-        date: date.toISOString().split('T')[0],
-        price: Math.max(10, price),
-        volume: Math.floor(Math.random() * 10000000) + 1000000,
-      });
-    }
-
-    return of({ ticker, period, data }).pipe(delay(200));
-  }
 
   private getMockOptionChain(ticker: string, settlementDate: string): Observable<OptionChain> {
     const currentPrice = 178.25; // AAPL example
