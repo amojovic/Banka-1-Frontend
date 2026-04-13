@@ -182,19 +182,33 @@ services:
     image: ghcr.io/raf-si-2025/banka-1-backend/exchange-service:latest
     container_name: exchange-service
     environment:
-      # Database
+      # Database (try both USER and USERNAME variants)
       EXCHANGE_SERVICE_HOST: 0.0.0.0
       EXCHANGE_SERVER_PORT: 8091
       EXCHANGE_DB_HOST: postgres
       EXCHANGE_DB_PORT: 5432
       EXCHANGE_DB_NAME: exchange_db
       EXCHANGE_DB_USER: postgres
+      EXCHANGE_DB_USERNAME: postgres
       EXCHANGE_DB_PASSWORD: postgres
+      # Explicit Spring datasource fallback (overrides any application.yml)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/exchange_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      # RabbitMQ (may be pulled in via shared starter even if unused)
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
       # Server (Spring Boot standard + service-specific alias)
       SERVER_PORT: 8091
       # Security
       JWT_SECRET: ${JWT_SECRET:-ci-jwt-secret-banka1-testing-only}
-      TWELVE_DATA_API_KEY: ""
+      TWELVE_DATA_API_KEY: demo
       # Observability (disabled for CI)
       MANAGEMENT_OTLP_METRICS_EXPORT_URL: http://localhost:4318/v1/metrics
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://localhost:4318/v1/traces
