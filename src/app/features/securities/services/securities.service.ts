@@ -71,15 +71,33 @@ export class SecuritiesService {
     } as SecuritiesPage<Stock>;
   }
 
+  private buildStockParams(filters: SecuritiesFilters, page: number, size: number): HttpParams {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    if (filters.exchange)                params = params.set('exchange', filters.exchange);
+    if (filters.priceMin !== undefined)  params = params.set('minPrice', filters.priceMin.toString());
+    if (filters.priceMax !== undefined)  params = params.set('maxPrice', filters.priceMax.toString());
+    if (filters.volumeMin !== undefined) params = params.set('minVolume', filters.volumeMin.toString());
+    if (filters.volumeMax !== undefined) params = params.set('maxVolume', filters.volumeMax.toString());
+    if (filters.marginMin !== undefined) params = params.set('minMargin', filters.marginMin.toString());
+    if (filters.marginMax !== undefined) params = params.set('maxMargin', filters.marginMax.toString());
+    if (filters.bidMin !== undefined)    params = params.set('minBid', filters.bidMin.toString());
+    if (filters.bidMax !== undefined)    params = params.set('maxBid', filters.bidMax.toString());
+    if (filters.askMin !== undefined)    params = params.set('minAsk', filters.askMin.toString());
+    if (filters.askMax !== undefined)    params = params.set('maxAsk', filters.askMax.toString());
+
+    return params;
+  }
+
   getStocks(
     filters: SecuritiesFilters = {},
     page = 0,
     size = 10,
     sort?: SortConfig
   ): Observable<SecuritiesPage<Stock>> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
+    const params = this.buildStockParams(filters, page, size);
     return this.http.get<any>(`${this.stocksUrl}`, { params }).pipe(
       map(response => this.mapStocksPage(response, filters, page, size, sort))
     );
@@ -91,9 +109,7 @@ export class SecuritiesService {
     size = 10,
     sort?: SortConfig
   ): Observable<SecuritiesPage<Stock>> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
+    const params = this.buildStockParams(filters, page, size);
     return this.http.get<any>(`${this.stocksUrl}`, { params }).pipe(
       map(response => this.mapStocksPage(response, filters, page, size, sort))
     );
