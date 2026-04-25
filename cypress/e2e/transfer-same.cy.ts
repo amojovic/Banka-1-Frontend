@@ -79,10 +79,24 @@ function setupAuth() {
 }
 
 function interceptAccounts() {
-  cy.intercept('GET', '**/client/accounts', {
+  cy.intercept('GET', '**/accounts/client/accounts**', {
     statusCode: 200,
-    body: { content: mockAccounts }
+    body: { content: mockAccounts, totalElements: mockAccounts.length, totalPages: 1 }
   }).as('getAccounts');
+}
+
+function interceptPreview() {
+  cy.intercept('POST', '**/transfers/preview', {
+    statusCode: 200,
+    body: { fromAccount: '265000000000123456', toAccount: '265000000000123457', originalAmount: 5000, finalAmount: 5000, ownerName: 'Marko Petrovic' }
+  }).as('previewTransfer');
+}
+
+function interceptTransfer() {
+  cy.intercept('POST', '**/transfers/', {
+    statusCode: 200,
+    body: { id: 'transfer-456', status: 'COMPLETED' }
+  }).as('executeTransfer');
 }
 
 describe('F3 - Prenos (ista valuta)', () => {
@@ -91,6 +105,8 @@ describe('F3 - Prenos (ista valuta)', () => {
     cy.clearLocalStorage();
     setupAuth();
     interceptAccounts();
+    interceptPreview();
+    interceptTransfer();
   });
 
   // ─── Prikaz forme ───────────────────────────────

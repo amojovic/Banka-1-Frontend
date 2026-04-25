@@ -85,10 +85,21 @@ describe('Home E2E', () => {
     }).as('getAccounts');
 
     // Mockujemo prazne transakcije da bi se sigurno prikazao no-data div
-    cy.intercept('GET', '**/transactions/employee/accounts/**', {
+    cy.intercept('GET', '**/transactions/accounts/**', {
       statusCode: 200,
       body: { content: [], totalElements: 0, totalPages: 0 }
     }).as('getTransactionsEmpty');
+
+    // Mockujemo exchange rates za konverziju valuta
+    cy.intercept('GET', '**/exchange/rates*', {
+      statusCode: 200,
+      body: [
+        { currencyCode: 'EUR', buyingRate: 1, sellingRate: 1 },
+        { currencyCode: 'USD', buyingRate: 1, sellingRate: 1 },
+        { currencyCode: 'GBP', buyingRate: 1, sellingRate: 1 },
+        { currencyCode: 'CHF', buyingRate: 1, sellingRate: 1 }
+      ]
+    }).as('getExchangeRates');
 
     cy.visit('/home');
     cy.wait(['@getAccounts', '@getTransactionsEmpty']);

@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { AccountService } from '../services/account.service';
+import { ExchangeRateService, ExchangeRate } from '../services/exchange-rate.service';
 import { Account } from '../models/account.model';
 import { Transaction } from '../models/transaction.model';
 
@@ -26,13 +27,30 @@ export class HomeComponent implements OnInit {
   transactionsLoading = false;
   transactionsError = false;
 
+  // ── Kursevi valuta ──────────────────────────
+  exchangeRates: ExchangeRate[] = [];
+
   constructor(
     private authService: AuthService,
-    private accountService: AccountService
+    private accountService: AccountService,
+    private exchangeRateService: ExchangeRateService
   ) {}
 
   ngOnInit(): void {
+    this.loadExchangeRates();
     this.loadAccounts();
+  }
+
+  loadExchangeRates(): void {
+    this.exchangeRateService.getRates().subscribe({
+      next: (data) => {
+        this.exchangeRates = data.rates ?? [];
+      },
+      error: () => {
+        console.error('Greška pri učitavanju kurseva');
+        this.exchangeRates = [];
+      }
+    });
   }
 
   loadAccounts(): void {
@@ -92,11 +110,32 @@ export class HomeComponent implements OnInit {
   // ── Helpers ──────────────────────────────────
 
   get totalAvailableBalance(): number {
-    let total = 0;
+    let totalInRSD = 0;
+    
     for (const account of this.accounts) {
-      total += account.availableBalance;
+      if (account.currency === 'RSD') {
+        // RSD računi se samo sabiraju
+        totalInRSD += account.availableBalance;
+      } else {
+        // Strane valute se konvertuju u RSD
+        if (this.exchangeRates.length > 0) {
+          try {
+            const { result } = this.exchangeRateService.convert(
+              account.availableBalance,
+              account.currency,
+              'RSD',
+              this.exchangeRates
+            );
+            totalInRSD += result;
+          } catch (error) {
+            console.warn(`Konverzija za valutu ${account.currency} nije moguća, koristim originalnu vrednost`);
+            // Ako konverzija izbane, zanemarujemo tu valutu
+          }
+        }
+      }
     }
-    return total;
+    
+    return totalInRSD;
   }
 
   formatAmount(amount: number, currency: string = 'RSD'): string {

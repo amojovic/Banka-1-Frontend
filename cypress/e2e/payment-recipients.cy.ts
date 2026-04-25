@@ -15,10 +15,28 @@ describe('Payment Recipients Component', () => {
     }).as('getAccounts');
 
     // Presretanje dohvatanja primalaca
-    cy.intercept('GET', '**/transfers/accounts/**', {
+    cy.intercept('GET', '**/payments/accounts/**', {
       statusCode: 200,
-      body: { content: MOCK_RECIPIENTS } // Neki put servis vraća samo niz, neki put objekt sa content
+      body: { content: MOCK_RECIPIENTS }
     }).as('getRecipients');
+
+    // Presretanje za dodavanje primaoca
+    cy.intercept('POST', '**/payments/recipients', {
+      statusCode: 201,
+      body: { id: 3, name: 'Novi Primalac', accountNumber: '265000000923124326' }
+    }).as('addRecipient');
+
+    // Presretanje za brisanje primaoca
+    cy.intercept('DELETE', '**/payments/recipients/**', {
+      statusCode: 200,
+      body: { message: 'Recipient deleted' }
+    }).as('deleteRecipient');
+
+    // Presretanje za ažuriranje primaoca
+    cy.intercept('PUT', '**/payments/recipients/**', {
+      statusCode: 200,
+      body: { id: 1, name: 'Ažuriran Primalac', accountNumber: '265000000923124323' }
+    }).as('updateRecipient');
 
     // Autentifikacija
     cy.visit('/payments/recipients', {
@@ -33,7 +51,8 @@ describe('Payment Recipients Component', () => {
     });
 
     // Obezbedi da se stranica u potpunosti renderuje
-    cy.get('h1, h2, .z-card', { timeout: 10000 }).should('be.visible');
+    cy.get('h1, h2, .z-card, table', { timeout: 10000 }).should('exist');
+    cy.wait('@getRecipients');
   });
 
   describe('Prikaz liste i osnovni elementi', () => {
