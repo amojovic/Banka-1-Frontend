@@ -113,9 +113,9 @@ function setupAuth() {
 }
 
 function interceptAccounts() {
-  cy.intercept('GET', '**/client/accounts', {
+  cy.intercept('GET', '**/accounts/client/accounts**', {
     statusCode: 200,
-    body: { content: mockAccounts }
+    body: { content: mockAccounts, totalElements: mockAccounts.length, totalPages: 1 }
   }).as('getAccounts');
 }
 
@@ -126,6 +126,13 @@ function interceptPreview() {
   }).as('previewTransfer');
 }
 
+function interceptTransfer() {
+  cy.intercept('POST', '**/transfers/different', {
+    statusCode: 200,
+    body: { id: 'transfer-123', status: 'COMPLETED' }
+  }).as('executeTransfer');
+}
+
 describe('F4 - Transfer (različite valute)', () => {
 
   beforeEach(() => {
@@ -133,6 +140,7 @@ describe('F4 - Transfer (različite valute)', () => {
     setupAuth();
     interceptAccounts();
     interceptPreview();
+    interceptTransfer();
   });
 
   // ─── Prikaz forme ───────────────────────────────

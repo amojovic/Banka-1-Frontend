@@ -2,12 +2,13 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Observable, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Observable, Subject, combineLatest } from 'rxjs';
+import { takeUntil, map } from 'rxjs/operators';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { AuthService } from '../../../../core/services/auth.service';
 import { SecuritiesService } from '../../services/securities.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { ExchangeManagerService } from '../../../employee/services/exchange-manager.service';
 import {
   Security,
   Stock,
@@ -33,6 +34,7 @@ export class SecuritiesListComponent implements OnInit, OnDestroy {
 
   activeTab: SecurityTab = 'stocks';
   isClient = false;
+  useMockData = false;
 
   securities: Security[] = [];
   isLoading = false;
@@ -55,12 +57,20 @@ export class SecuritiesListComponent implements OnInit, OnDestroy {
     private readonly securitiesService: SecuritiesService,
     private readonly authService: AuthService,
     private readonly router: Router,
-    private readonly toastService: ToastService
+    private readonly toastService: ToastService,
+    private readonly exchangeManager: ExchangeManagerService
   ) {}
 
   ngOnInit(): void {
     this.isClient = this.authService.isClient();
-    this.loadSecurities();
+    
+    // Pretplati se na promene mock/live režima - automatski učita nove podatke
+    // BehaviorSubject odmah emituje, što će pozvati loadSecurities() i učitati podatke
+    this.exchangeManager.useMockData$.pipe(takeUntil(this.destroy$)).subscribe(isMock => {
+      this.useMockData = isMock;
+      this.currentPage = 0; // Reset na prvu stranicu
+      this.loadSecurities(); // Učitaj podatke
+    });
   }
 
   ngOnDestroy(): void {
@@ -91,9 +101,20 @@ export class SecuritiesListComponent implements OnInit, OnDestroy {
     });
   }
 
+  toggleMockData(): void {
+    this.exchangeManager.toggleMockData();
+  }
+
   loadSecurities(): void {
     this.isLoading = true;
     this.errorMessage = '';
+
+    // Automatski dodaj dostupne berze kao filter da se ne prikazuju hartije sa nepostojeći berzama
+    const availableMICCodes = this.exchangeManager.getAvailableExchangeCodes().join(',');
+    const filtersWithExchange = {
+      ...this.filters,
+      exchange: availableMICCodes
+    };
 
     let request$: Observable<SecuritiesPage<Security>>;
     switch (this.activeTab) {
@@ -101,14 +122,14 @@ export class SecuritiesListComponent implements OnInit, OnDestroy {
         // Use client-specific endpoint for stock clients
         if (this.isClient) {
           request$ = this.securitiesService.getClientStocks(
-            this.filters,
+            filtersWithExchange,
             this.currentPage,
             this.pageSize,
             this.sortConfig
           );
         } else {
           request$ = this.securitiesService.getStocks(
-            this.filters,
+            filtersWithExchange,
             this.currentPage,
             this.pageSize,
             this.sortConfig
@@ -117,7 +138,7 @@ export class SecuritiesListComponent implements OnInit, OnDestroy {
         break;
       case 'futures':
         request$ = this.securitiesService.getFutures(
-          this.filters,
+          filtersWithExchange,
           this.currentPage,
           this.pageSize,
           this.sortConfig
@@ -125,7 +146,7 @@ export class SecuritiesListComponent implements OnInit, OnDestroy {
         break;
       case 'forex':
         request$ = this.securitiesService.getForex(
-          this.filters,
+          filtersWithExchange,
           this.currentPage,
           this.pageSize,
           this.sortConfig
@@ -135,6 +156,8 @@ export class SecuritiesListComponent implements OnInit, OnDestroy {
 
     request$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (page: SecuritiesPage<Security>) => {
+        // Koristi direktno podatke iz backend-a bez dodatnog filtriranja
+        // Backend je već filtrirao po dostupnim berzama ako je potrebno
         this.securities = page.content;
         this.totalElements = page.totalElements;
         this.totalPages = page.totalPages;
