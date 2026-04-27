@@ -1,0 +1,208 @@
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
+import { PortfolioService } from '../../services/portfolio.service';
+import {
+  PortfolioHolding,
+  PortfolioListingType,
+  PortfolioSummary,
+} from '../../models/portfolio.model';
+import { AuthService } from '../../../../core/services/auth.service';
+import { ToastService } from '../../../../shared/services/toast.service';
+
+@Component({
+  selector: 'app-portfolio',
+  standalone: true,
+  imports: [CommonModule, FormsModule, NavbarComponent],
+  templateUrl: './portfolio.component.html',
+  styleUrls: ['./portfolio.component.scss'],
+})
+export class PortfolioComponent implements OnInit, OnDestroy {
+  summary: PortfolioSummary | null = null;
+  holdings: PortfolioHolding[] = [];
+  isLoading = false;
+  errorMessage = '';
+  isActuary = false;
+
+  draftPublicQuantities: Record<string, number> = {};
+  savingPublicQuantity: Record<string, boolean> = {};
+  exercisingOption: Record<string, boolean> = {};
+
+  private readonly destroy$ = new Subject<void>();
+
+  constructor(
+    private readonly portfolioService: PortfolioService,
+    private readonly authService: AuthService,
+    private readonly toastService: ToastService,
+  ) {}
+
+  ngOnInit(): void {
+    this.isActuary = this.authService.isActuary();
+    this.loadPortfolio();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  loadPortfolio(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.portfolioService
+      .getPortfolio()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (summary) => {
+          this.summary = summary;
+          this.holdings = summary.holdings ?? [];
+          this.draftPublicQuantities = {};
+
+          this.holdings.forEach((holding, index) => {
+            this.draftPublicQuantities[this.getHoldingKey(holding, index)] =
+              holding.publicQuantity ?? 0;
+          });
+
+          this.isLoading = false;
+        },
+        error: () => {
+          this.errorMessage =
+            'Greška pri učitavanju portfolija. Pokušajte ponovo.';
+          this.isLoading = false;
+        },
+      });
+  }
+
+  getHoldingKey(holding: PortfolioHolding, index: number): string {
+    return `${holding.ticker}-${holding.listingType}-${index}`;
+  }
+
+  hasPortfolioActionId(holding: PortfolioHolding): boolean {
+    return holding.id !== undefined && holding.id !== null;
+  }
+
+  savePublicQuantity(holding: PortfolioHolding, index: number): void {
+    const key = this.getHoldingKey(holding, index);
+    const value = Number(this.draftPublicQuantities[key] ?? 0);
+
+    if (!this.hasPortfolioActionId(holding)) {
+      this.toastService.info('Backend trenutno ne vraća portfolio ID, pa ova akcija još nije dostupna.');
+      return;
+    }
+
+    if (!Number.isFinite(value) || value < 0) {
+      this.toastService.error('Javna količina mora biti 0 ili veća.');
+      return;
+    }
+
+    if (value > holding.quantity) {
+      this.toastService.error('Javna količina ne može biti veća od ukupne količine.');
+      return;
+    }
+
+    this.savingPublicQuantity[key] = true;
+
+    this.portfolioService
+      .setPublicQuantity(holding.id as number, { publicQuantity: value })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toastService.success('Javna količina je uspešno ažurirana.');
+          this.loadPortfolio();
+        },
+        error: () => {
+          this.toastService.error('Nije moguće sačuvati javnu količinu.');
+          this.savingPublicQuantity[key] = false;
+        },
+      });
+  }
+
+  exerciseOption(holding: PortfolioHolding, index: number): void {
+    const key = this.getHoldingKey(holding, index);
+
+    if (!this.hasPortfolioActionId(holding)) {
+      this.toastService.info('Backend trenutno ne vraća portfolio ID, pa ova akcija još nije dostupna.');
+      return;
+    }
+
+    this.exercisingOption[key] = true;
+
+    this.portfolioService
+      .exerciseOption(holding.id as number)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toastService.success('Opcija je uspešno iskorišćena.');
+          this.loadPortfolio();
+        },
+        error: () => {
+          this.toastService.error('Nije moguće iskoristiti opciju.');
+          this.exercisingOption[key] = false;
+        },
+      });
+  }
+
+  onSell(): void {
+    // TODO: Povezati F1 Sell modal / Create order flow kada ta implementacija bude dostupna.
+  }
+
+  isStock(holding: PortfolioHolding): boolean {
+    return holding.listingType === 'STOCK';
+  }
+
+  isOption(holding: PortfolioHolding): boolean {
+    return holding.listingType === 'OPTION';
+  }
+
+  canExerciseOption(holding: PortfolioHolding): boolean {
+    return this.isActuary && this.isOption(holding) && holding.exercisable === true;
+  }
+
+  getTypeLabel(type: PortfolioListingType): string {
+    const labels: Record<PortfolioListingType, string> = {
+      STOCK: 'Akcija',
+      FUTURES: 'Fjučers',
+      FOREX: 'Forex',
+      OPTION: 'Opcija',
+    };
+
+    return labels[type] ?? type;
+  }
+
+  formatAmount(value: number | null | undefined, digits = 2): string {
+    return new Intl.NumberFormat('sr-RS', {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(value ?? 0);
+  }
+
+  formatDateTime(value: string): string {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('sr-RS', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  }
+
+  getProfitClass(value: number): string {
+    if (value > 0) return 'text-green-600';
+    if (value < 0) return 'text-red-600';
+    return 'text-muted-foreground';
+  }
+
+  trackByHolding(index: number, holding: PortfolioHolding): string {
+    return this.getHoldingKey(holding, index);
+  }
+}
