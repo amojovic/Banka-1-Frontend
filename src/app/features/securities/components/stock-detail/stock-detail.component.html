@@ -174,7 +174,7 @@
                     <td [ngClass]="{'in-the-money': call.inTheMoney, 'out-of-money': !call.inTheMoney}">{{ call.volume }}</td>
                     <td [ngClass]="{'in-the-money': call.inTheMoney, 'out-of-money': !call.inTheMoney}">{{ call.openInterest }}</td>
                     <td>
-                      <button type="button" class="z-btn-primary z-btn-xs" (click)="onBuyOption(call, 'CALL')">Kupi</button>
+                      <button type="button" class="z-btn-primary z-btn-sm" (click)="onBuyOption(call, 'CALL')">Kupi</button>
                     </td>
                   </ng-container>
                   <ng-container *ngIf="!getCallByStrike(strike)">
@@ -193,7 +193,7 @@
                     <td [ngClass]="{'in-the-money': put.inTheMoney, 'out-of-money': !put.inTheMoney}">{{ put.volume }}</td>
                     <td [ngClass]="{'in-the-money': put.inTheMoney, 'out-of-money': !put.inTheMoney}">{{ put.openInterest }}</td>
                     <td>
-                      <button type="button" class="z-btn-primary z-btn-xs" (click)="onBuyOption(put, 'PUT')">Kupi</button>
+                      <button type="button" class="z-btn-primary z-btn-sm" (click)="onBuyOption(put, 'PUT')">Kupi</button>
                     </td>
                   </ng-container>
                   <ng-container *ngIf="!getPutByStrike(strike)">

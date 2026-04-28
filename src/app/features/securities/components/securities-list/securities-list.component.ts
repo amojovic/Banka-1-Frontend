@@ -65,7 +65,6 @@ export class SecuritiesListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.isClient = this.authService.isClient();
-    this.loadSecurities();
 
     // Auto-refresh every 60 seconds
     interval(60000)
