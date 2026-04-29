@@ -168,12 +168,12 @@ const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { permission: 'CLIENT_MANAGE' },
   },
-{
-  path: 'tax-tracking',
-  component: TaxTrackingComponent,
-  canActivate: [authGuard, roleGuard],
-  data: { permission: 'isSupervisor' }, 
-},
+  {
+    path: 'tax-tracking',
+    component: TaxTrackingComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { permission: 'SECURITIES_TRADE_UNLIMITED' }, 
+  },
 
   {
     path: 'securities',

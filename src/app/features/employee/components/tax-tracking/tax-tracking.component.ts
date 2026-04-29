@@ -2,15 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from 'src/app/shared/components/navbar/navbar.component';
+import { TaxService } from '../../services/tax.service';
+import { TaxUser } from '../../models/tax-user.model';
 
-export interface TaxUser {
-  id: number;
-  firstName: string;
-  lastName: string;
-  type: 'CLIENT' | 'ACTUARY';
-  baseAmount: number; 
-  taxDebt: number;  
-}
 
 @Component({
   selector: 'app-tax-tracking',
@@ -18,7 +12,6 @@ export interface TaxUser {
   styleUrls: ['./tax-tracking.component.css'],
   standalone: true, 
   imports: [CommonModule, FormsModule, NavbarComponent], 
-
 })
 export class TaxTrackingComponent implements OnInit {
   
@@ -28,65 +21,55 @@ export class TaxTrackingComponent implements OnInit {
   searchTerm: string = '';
   userTypeFilter: string = 'ALL';
   
+  isLoading: boolean = false; // Dodato
   isProcessing: boolean = false;
 
-  constructor(/* private taxService: TaxService */) {}
-
+  constructor(private taxService: TaxService) {}
+  
   ngOnInit(): void {
     this.loadData();
   }
 
   loadData(): void {
-    // KADA BACKEND BUDE SPREMAN, OVO CE IZGLEDATI OVAKO:
-    /*
-    this.taxService.getTaxDebtors().subscribe(data => {
-      this.users = data;
-      this.filterData();
+    this.isLoading = true;
+    this.taxService.getTaxDebtors().subscribe({
+      next: (response: any) => {
+        // Backend vraća Page objekat, podaci su u 'content'
+        this.users = response.content || []; 
+        this.filterData();
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Greška pri učitavanju:', err);
+        this.isLoading = false;
+        // Opciono: ovde možeš dodati mock podatke ako je backend i dalje u kvaru
+      }
     });
-    */
-
-    // PRIVREMENI LAŽNI PODACI (Obriši kada povežeš sa backendom)
-
-    this.filterData();
   }
 
   filterData(): void {
     this.filteredUsers = this.users.filter(user => {
-      // Filtriranje po imenu/prezimenu
       const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-      const matchesSearch = fullName.includes(this.searchTerm.toLowerCase());
-      
-      // Filtriranje po tipu
+      const matchesSearch = fullName.includes(this.searchTerm.toLowerCase().trim());
       const matchesType = this.userTypeFilter === 'ALL' || user.type === this.userTypeFilter;
-      
       return matchesSearch && matchesType;
     });
   }
 
   startTaxCalculation(): void {
-    if (confirm('Da li ste sigurni da želite ručno da pokrenete naplatu poreza na kapitalnu dobit?')) {
       this.isProcessing = true;
       
-      // KADA BACKEND BUDE SPREMAN:
-      /*
       this.taxService.triggerTaxCalculation().subscribe({
         next: () => {
           alert('Obračun poreza je uspešno pokrenut i naplaćen.');
-          this.loadData(); // Osveži tabelu
+          this.loadData(); 
           this.isProcessing = false;
         },
-        error: (err) => {
-          console.error(err);
+        error: (err: any) => {
+          console.error('Greška pri obračunu:', err);
           this.isProcessing = false;
         }
       });
-      */
-      
-      // Privremena simulacija za UI
-      setTimeout(() => {
-        this.isProcessing = false;
-        alert('Simulacija: Obračun poreza je uspešno pokrenut!');
-      }, 1500);
-    }
+    
   }
 }
