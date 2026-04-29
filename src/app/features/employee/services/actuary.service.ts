@@ -36,4 +36,9 @@ export class ActuaryService {
   resetAgentUsedLimit(agentId: number): Observable<Actuary> {
     return this.http.put<Actuary>(`${this.apiUrl}/agents/${agentId}/reset-limit`, {});
   }
+
+updateNeedApproval(id: number, needApproval: boolean): Observable<void> {
+  // Koristimo apiUrl (koji je već .../order/actuaries) i samo dodajemo /agents/...
+  return this.http.put<void>(`${this.apiUrl}/agents/${id}/need-approval`, { needApproval });
+}
 }
